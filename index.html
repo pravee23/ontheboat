@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinOps Sentinel | AI-powered cloud cost optimization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050505; --panel:rgba(18,16,14,.72); --line:rgba(255,176,46,.18); --line2:rgba(255,255,255,.1);
+  --amber:#ffb02e; --ember:#ff6a2b; --rose:#e23d6b; --text:#f3efe8; --mute:#a59f93; --ok:#5fd39a; --bad:#ff6b6b;
+  --head:'Sora','Segoe UI',system-ui,sans-serif; --body:'Manrope','Segoe UI',system-ui,sans-serif;
+  --grad:linear-gradient(100deg,#ffb02e,#ff6a2b 60%,#e23d6b);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{background:var(--bg);color:var(--text);font:400 17px/1.65 var(--body)}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:-1}
+h1,h2,h3,h4{font-family:var(--head);line-height:1.12;letter-spacing:-.02em}
+h2{font-size:clamp(1.9rem,4vw,2.9rem);margin-bottom:.6rem}
+h3{font-size:1.2rem;margin-bottom:10px}
+.lead{color:var(--mute);max-width:62ch;margin-bottom:2.4rem}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+section{padding:84px 0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:6px}
+
+header{position:sticky;top:0;z-index:50;background:rgba(5,5,5,.7);backdrop-filter:blur(14px);border-bottom:1px solid var(--line2)}
+nav{display:flex;align-items:center;gap:26px;height:66px}
+.brand{font:800 1.2rem var(--head);text-decoration:none;display:flex;align-items:center;gap:10px}
+.brand svg{width:28px;height:28px}
+nav ul{display:flex;gap:22px;list-style:none;margin-left:auto;font-size:.93rem;font-weight:500}
+nav ul a{text-decoration:none;color:var(--mute)}nav ul a:hover{color:var(--amber)}
+.btn{font:700 .92rem var(--body);border:0;cursor:pointer;border-radius:10px;padding:11px 20px;text-decoration:none;display:inline-block;transition:transform .15s,box-shadow .2s,background .2s}
+.btn:active{transform:translateY(1px)}
+.btn-a{background:var(--grad);color:#1a0d02;box-shadow:0 8px 30px -8px rgba(255,106,43,.7)}.btn-a:hover{box-shadow:0 10px 38px -4px rgba(255,106,43,.9)}
+.btn-g{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.25)}.btn-g:hover{border-color:var(--amber);color:var(--amber)}
+#authSlot{display:flex;gap:10px;align-items:center}
+.chip{border:1px solid var(--line);background:rgba(255,176,46,.1);color:var(--amber);border-radius:999px;padding:6px 14px;font-weight:600;font-size:.86rem}
+@media(max-width:900px){nav ul{display:none}#authSlot{margin-left:auto}}
+
+/* hero */
+.hero{padding:96px 0 40px}
+.hero .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+.hero h1{font-size:clamp(2.5rem,5.8vw,4.6rem);font-weight:800}
+.hero h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;display:block}
+.hero p{color:#cfc8ba;max-width:52ch;margin:22px 0 30px;font-size:1.1rem}
+.cta{display:flex;gap:14px;flex-wrap:wrap}
+.report{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;backdrop-filter:blur(10px);box-shadow:0 0 80px -20px rgba(255,106,43,.45)}
+.report h4{font-size:1rem;margin-bottom:10px;color:var(--amber)}
+.finding{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line2);font-size:.92rem}
+.finding b{color:var(--amber);white-space:nowrap}
+.code{background:#000;border:1px solid var(--line2);color:#ffd9a3;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;border-radius:10px;padding:12px 14px;margin-top:14px;overflow-x:auto;white-space:pre}
+.code i{color:#7d776c;font-style:normal}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:56px;border:1px solid var(--line2);border-radius:16px;background:var(--panel);backdrop-filter:blur(8px)}
+.stats div{padding:22px;border-right:1px solid var(--line2);font-size:.9rem;color:var(--mute)}
+.stats div:last-child{border:0}
+.stats strong{display:block;font:800 1.7rem var(--head);color:var(--text)}
+@media(max-width:900px){.hero .grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.stats div:nth-child(2){border-right:0}.stats div:nth-child(-n+2){border-bottom:1px solid var(--line2)}}
+
+/* cards */
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--panel);border:1px solid var(--line2);border-top:2px solid var(--amber);border-radius:14px;padding:26px;backdrop-filter:blur(8px)}
+.card ul{list-style:none}
+.card li{padding:6px 0 6px 20px;position:relative;font-size:.96rem;color:#d9d3c7}
+.card li:before{content:"";position:absolute;left:0;top:.95em;width:7px;height:7px;border-radius:50%;background:var(--ember)}
+@media(max-width:900px){.three{grid-template-columns:1fr}}
+
+/* calculator */
+.calc{margin-top:36px;border:1px solid var(--line);border-radius:16px;padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;background:var(--panel)}
+.calc label{font-weight:700;display:block;margin-bottom:10px}
+input[type=range]{width:100%;accent-color:var(--amber)}
+.big{font:800 3rem var(--head);background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media(max-width:800px){.calc{grid-template-columns:1fr}}
+
+/* results dashboard */
+.dash{border:1px solid var(--line);border-radius:20px;background:var(--panel);backdrop-filter:blur(10px);overflow:hidden}
+.cos{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line2)}
+.co{background:none;border:0;border-right:1px solid var(--line2);color:var(--mute);text-align:left;padding:18px 20px;cursor:pointer;font:inherit;transition:background .2s}
+.co:last-child{border-right:0}
+.co b{display:block;color:var(--text);font:700 1rem var(--head)}
+.co span{font-size:.82rem}
+.co:hover{background:rgba(255,176,46,.06)}
+.co.on{background:rgba(255,176,46,.12);box-shadow:inset 0 -3px 0 var(--amber)}
+.co.on b{color:var(--amber)}
+.dbody{display:grid;grid-template-columns:1.7fr 1fr;gap:0}
+.dleft{padding:24px;border-right:1px solid var(--line2);min-width:0}
+.dright{padding:24px}
+.ctrls{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;margin-bottom:14px}
+.seg{display:inline-flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{border:0;background:none;color:var(--mute);font:600 .85rem var(--body);padding:7px 14px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--amber);color:#1a0d02}
+#chart{min-height:340px}
+#chart svg{width:100%;height:auto;display:block}
+.bar{transform-box:fill-box;transform-origin:bottom;animation:grow .6s ease-out}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.draw{stroke-dasharray:2000;stroke-dashoffset:2000;animation:dash 1.1s ease-out forwards}
+@keyframes dash{to{stroke-dashoffset:0}}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:.85rem;color:var(--mute);margin-top:6px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+table.t{width:100%;border-collapse:collapse;font-size:.92rem}
+table.t th,table.t td{padding:10px 12px;border-bottom:1px solid var(--line2);text-align:right}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t th{color:var(--amber);font-weight:600}
+.kpi{padding:14px 0;border-bottom:1px solid var(--line2)}
+.kpi:first-of-type{padding-top:0}
+.kpi span{display:block;font-size:.82rem;color:var(--mute)}
+.kpi strong{font:800 1.8rem var(--head)}
+.kpi strong.g{color:var(--ok)}
+.story{font-size:.93rem;color:#d9d3c7;margin:16px 0}
+.badge{display:inline-block;border:1px dashed var(--line);color:var(--amber);font-size:.8rem;padding:3px 10px;border-radius:999px;margin-bottom:12px}
+.dl{display:flex;gap:10px;flex-wrap:wrap}
+.dl .btn{padding:8px 14px;font-size:.84rem}
+.fine{margin-top:14px;font-size:.84rem;color:var(--mute)}
+@media(max-width:900px){.dbody{grid-template-columns:1fr}.dleft{border-right:0;border-bottom:1px solid var(--line2)}.cos{grid-template-columns:1fr 1fr}.co:nth-child(2){border-right:0}.co:nth-child(-n+2){border-bottom:1px solid var(--line2)}}
+
+/* tech + flow */
+.tech{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:44px}
+.tech div{border:1px solid var(--line2);background:var(--panel);border-radius:12px;padding:18px}
+.tech b{display:block;font:700 1.1rem var(--head);color:var(--amber)}
+.tech span{font-size:.9rem;color:var(--mute)}
+.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.step{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,176,46,.1),rgba(255,106,43,.03));border-radius:12px;padding:18px 14px;position:relative}
+.step:not(:last-child):after{content:"";position:absolute;right:-12px;top:50%;border:6px solid transparent;border-left:7px solid var(--ember);transform:translateY(-50%)}
+.step b{display:block;font:700 1.05rem var(--head);margin-bottom:6px}
+.step span{font-size:.86rem;color:var(--mute)}
+@media(max-width:960px){.flow{grid-template-columns:1fr 1fr}.step:after{display:none}.tech{grid-template-columns:1fr 1fr}}
+
+.risk{display:grid;grid-template-columns:1fr 30px 1fr;gap:12px 8px;align-items:stretch}
+.risk .r{background:rgba(226,61,107,.12);border:1px solid rgba(226,61,107,.35);border-radius:10px;padding:14px 16px;font-size:.94rem}
+.risk .s{background:rgba(95,211,154,.1);border:1px solid rgba(95,211,154,.35);border-radius:10px;padding:14px 16px;font-size:.94rem}
+.risk .a{align-self:center;text-align:center;color:var(--amber)}
+.feas{display:grid;grid-template-columns:.8fr 1.4fr;gap:30px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.stack{display:grid;gap:18px}
+@media(max-width:900px){.feas,.two{grid-template-columns:1fr}}
+
+/* membership (compact) */
+.mem{border:1px solid var(--line);border-radius:16px;padding:24px 28px;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--panel)}
+.mem p{color:var(--mute);max-width:56ch}
+#plans{display:none;margin-top:16px;border:1px solid var(--line2);border-radius:14px;background:var(--panel);overflow:hidden}
+#plans.open{display:block}
+.pl{display:grid;grid-template-columns:130px 100px 1fr auto;gap:16px;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line2);font-size:.93rem}
+.pl:last-child{border:0}.pl b{font-family:var(--head)}.pl span{color:var(--mute)}
+.pl .btn{padding:8px 16px;font-size:.84rem}
+@media(max-width:700px){.pl{grid-template-columns:1fr 1fr}.pl span{grid-column:1/-1}}
+
+footer{border-top:1px solid var(--line2);padding:30px 0;color:var(--mute);font-size:0.9rem;background:rgba(0,0,0,.6)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+/* modal */
+dialog{border:1px solid var(--line);border-radius:18px;padding:0;width:min(440px,92vw);margin:auto;background:#0d0b09;color:var(--text);box-shadow:0 40px 100px -20px rgba(255,106,43,.35)}
+dialog::backdrop{background:rgba(0,0,0,.75);backdrop-filter:blur(4px)}
+.m{padding:30px}
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.06);padding:4px;border-radius:10px;margin-bottom:22px}
+.tabs button{flex:1;border:0;background:none;padding:9px;border-radius:8px;font:600 .92rem var(--body);color:var(--mute);cursor:pointer}
+.tabs button.on{background:var(--amber);color:#1a0d02}
+.f{margin-bottom:14px}.f label{display:block;font-size:.86rem;font-weight:600;margin-bottom:5px;color:#d9d3c7}
+.f input,.f select{width:100%;padding:11px 12px;border:1px solid var(--line2);border-radius:8px;font:inherit;background:#161310;color:var(--text)}
+.f input:focus,.f select:focus{border-color:var(--amber);outline:none;box-shadow:0 0 0 3px rgba(255,176,46,.2)}
+.msg{min-height:22px;font-size:.9rem;margin:4px 0 12px;color:var(--bad)}
+.x{float:right;background:none;border:0;font-size:1.5rem;cursor:pointer;color:var(--mute);line-height:1}
+.hide{display:none!important}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--amber);color:#1a0d02;font-weight:700;padding:12px 22px;border-radius:10px;z-index:99}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+
+<header><div class="wrap"><nav aria-label="Main">
+  <a class="brand" href="#top">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#ffb02e"/><stop offset="1" stop-color="#ff6a2b"/></linearGradient></defs><path d="M16 2 4 7v8c0 7.500 5 13 12 15 7-2 12-7.500 12-15V7z" fill="url(#lg)"/><path d="M10 19l4-4 3 3 5-6" stroke="#1a0d02" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    FinOps Sentinel
+  </a>
+  <ul>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#approach">Approach</a></li>
+    <li><a href="#feasibility">Feasibility</a></li>
+    <li><a href="#business">Business</a></li>
+    <li><a href="#impact">Impact</a></li>
+  </ul>
+  <div id="authSlot"></div>
+</nav></div></header>
+
+<main id="top">
+<div class="hero"><div class="wrap">
+  <div class="grid">
+    <div>
+      <h1>Stop paying for cloud you aren't using.<em>Let an AI agent fix the bill.</em></h1>
+      <p>Upload your billing export. FinOps Sentinel finds idle, orphaned and oversized resources across AWS, Azure and Google Cloud, explains the leak in plain language, and hands your engineers a safe script to fix it.</p>
+      <div class="cta">
+        <a class="btn btn-a" href="#results">See results</a>
+        <a class="btn btn-g" href="#" data-open="signup">Create free account</a>
+      </div>
+    </div>
+    <div class="report" aria-label="Sample report">
+      <h4>Sample finding from an uploaded bill</h4>
+      <div class="finding"><span>4 unattached EBS volumes (AWS)</span><b>$1,200 / month</b></div>
+      <div class="finding"><span>VM idle at 2% CPU for 30 days (Azure)</span><b>$640 / month</b></div>
+      <div class="finding"><span>Over-provisioned database (GCP)</span><b>$410 / month</b></div>
+      <div class="code"><i># snapshot first, then delete. Dry run is on by default.</i>
+aws ec2 create-snapshot --volume-id vol-0a1b2c --dry-run
+aws ec2 delete-volume   --volume-id vol-0a1b2c --dry-run</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div><strong>~30%</strong>of cloud budget wasted on unused resources</div>
+    <div><strong>3 clouds</strong>AWS, Azure and Google Cloud in one tool</div>
+    <div><strong>0 stored</strong>credentials, anonymized logs only</div>
+    <div><strong>You approve</strong>every change before it runs</div>
+  </div>
+</div></div>
+
+<section id="solution"><div class="wrap">
+  <h2>An AI agent for cloud waste</h2>
+  <p class="lead">FinOps Sentinel is an autonomous financial agent. It does more than draw charts: it tells you what to switch off and writes the commands to do it.</p>
+  <div class="three">
+    <div class="card"><h3>What the solution does</h3><ul>
+      <li>Upload raw, anonymized cloud billing logs (CSV) and utilization metrics</li>
+      <li>Works across AWS, Azure and Google Cloud</li>
+      <li>AI agent finds orphaned, idle and over-provisioned resources</li>
+      <li>Outputs a plain-language report plus ready-to-run scripts</li></ul></div>
+    <div class="card"><h3>How it addresses the problem</h3><ul>
+      <li>Enterprises waste roughly 30% of cloud budget on unused resources</li>
+      <li>Replaces teams manually reading complex billing spreadsheets</li>
+      <li>Shows exactly where money leaks and how to stop it</li>
+      <li>Example: 4 unattached EBS volumes costing $1,200/month</li></ul></div>
+    <div class="card"><h3>What makes it different</h3><ul>
+      <li>An autonomous agent, not just a static chart</li>
+      <li>Generates precise command-line scripts to archive, delete or downsize safely</li>
+      <li>Protects production systems before any change is made</li>
+      <li>One tool for multi-cloud waste hunting</li></ul></div>
+  </div>
+  <div class="calc">
+    <div>
+      <label for="spend">Your monthly cloud bill: <span id="spendVal">$50,000</span></label>
+      <input id="spend" type="range" min="1000" max="500000" step="1000" value="50000">
+      <p style="color:var(--mute);font-size:.88rem;margin-top:8px">Based on the roughly 30% waste figure from our research. Real savings depend on your own data.</p>
+    </div>
+    <div>
+      <div style="color:var(--mute)">Possible waste to recover each month</div>
+      <div class="big" id="save">$15,000</div>
+      <div id="saveYear" style="color:var(--mute)">$180,000 a year</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="results"><div class="wrap">
+  <h2>Results from sample deployments</h2>
+  <p class="lead">Pick a company, then change what the chart shows and how it is drawn. Every view can be downloaded.</p>
+  <div class="dash">
+    <div class="cos" id="cos"></div>
+    <div class="dbody">
+      <div class="dleft">
+        <div class="ctrls">
+          <div class="seg" id="dsSeg" role="group" aria-label="Data shown"></div>
+          <div class="seg" id="tySeg" role="group" aria-label="Chart format"></div>
+        </div>
+        <div id="chart" aria-live="polite"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="dright">
+        <span class="badge">Illustrative sample data</span>
+        <h3 id="coName"></h3>
+        <p class="story" id="story"></p>
+        <div class="kpi"><span>Monthly spend saved (month 6)</span><strong class="g" id="k1"></strong></div>
+        <div class="kpi"><span>Cut versus projected bill</span><strong id="k2"></strong></div>
+        <div class="kpi"><span>Six-month savings</span><strong id="k3"></strong></div>
+        <div class="dl" style="margin-top:18px">
+          <button class="btn btn-g" id="dCsv">Download CSV</button>
+          <button class="btn btn-g" id="dPng">Download image</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="fine">The companies and figures above are fictional examples built to show what a FinOps Sentinel report looks like. They are not real customers.</p>
+</div></section>
+
+<section id="approach"><div class="wrap">
+  <h2>Technical approach</h2>
+  <p class="lead">Standard billing exports, open-source tooling and an LLM for the explanation layer.</p>
+  <div class="tech">
+    <div><b>Python</b><span>Core logic</span></div>
+    <div><b>Pandas</b><span>CSV processing</span></div>
+    <div><b>ML / Rules</b><span>Waste detection</span></div>
+    <div><b>LLM API</b><span>AI agent and narrative</span></div>
+    <div><b>Streamlit</b><span>Web interface</span></div>
+    <div><b>Cloud CLIs</b><span>Script output</span></div>
+  </div>
+  <h3 style="margin-bottom:16px">From upload to savings</h3>
+  <div class="flow">
+    <div class="step"><b>Upload</b><span>Billing CSV and utilization metrics</span></div>
+    <div class="step"><b>Clean</b><span>Validate, anonymize, merge clouds</span></div>
+    <div class="step"><b>Detect</b><span>Find idle, orphaned, oversized</span></div>
+    <div class="step"><b>AI Agent</b><span>Explain leaks in plain language</span></div>
+    <div class="step"><b>Scripts</b><span>Generate safe CLI commands</span></div>
+    <div class="step"><b>Review</b><span>Approve, run, track savings</span></div>
+  </div>
+</div></section>
+
+<section id="feasibility"><div class="wrap">
+  <h2>Feasibility and viability</h2>
+  <p class="lead">Every risk has a planned answer built into the product.</p>
+  <div class="feas">
+    <div class="card"><h3>Is it feasible?</h3><ul>
+      <li>Technically feasible: standard billing CSV exports and open-source tools</li>
+      <li>Low prototype cost: free tiers and sample datasets</li>
+      <li>Quick demo: upload a file, get a report and scripts</li>
+      <li>Clear value: savings are measurable in money</li></ul></div>
+    <div class="risk">
+      <div class="r">Deleting the wrong resource could break production</div><div class="a">&rarr;</div><div class="s">Archive or snapshot first, dry-run mode, human approval</div>
+      <div class="r">Billing formats differ across AWS, Azure and GCP</div><div class="a">&rarr;</div><div class="s">Common data schema with one parser per provider</div>
+      <div class="r">AI may suggest an inaccurate command</div><div class="a">&rarr;</div><div class="s">Validate scripts with rule checks before showing them</div>
+      <div class="r">Privacy of company billing data</div><div class="a">&rarr;</div><div class="s">Use anonymized logs; no credentials stored</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="business"><div class="wrap">
+  <h2>Business canvas</h2>
+  <p class="lead">Who it is for, how it earns, and what it needs to get going.</p>
+  <div class="two">
+    <div class="card"><h3>Mission and vision</h3><ul>
+      <li>Mission: help every organization stop wasting cloud money with explainable AI</li>
+      <li>Vision: cloud spending that optimizes itself, safely</li></ul></div>
+    <div class="card"><h3>Market and competition</h3><ul>
+      <li>Target: enterprises, start-ups and IT service providers on AWS, Azure, GCP</li>
+      <li>Alternatives: native cost tools and dashboards that show charts only</li>
+      <li>Our edge: actionable scripts and narrative, multi-cloud</li></ul></div>
+    <div class="card"><h3>Business perspective</h3><ul>
+      <li>Users: FinOps, DevOps and finance teams</li>
+      <li>Model: subscription tiers or a share of savings</li>
+      <li>Value: findings turn directly into money saved</li></ul></div>
+    <div class="card"><h3>Financial planning and requirements</h3><ul>
+      <li>Needs: LLM API credits, cloud hosting, a small dev team</li>
+      <li>Prototype: built on free tiers and open-source tools</li>
+      <li>Revenue: SaaS plans for teams and organizations</li></ul></div>
+  </div>
+</div></section>
+
+<section id="impact"><div class="wrap">
+  <h2>Impact and benefits</h2>
+  <p class="lead">Savings you can measure, and a lighter footprint on the data centre.</p>
+  <div class="two">
+    <div class="card"><h3>Impact on the target audience</h3><ul>
+      <li>Cloud bills drop by removing unused resources</li>
+      <li>Hours of manual billing analysis saved</li>
+      <li>Engineers get safe, ready-made fix scripts</li>
+      <li>Leaders see savings in plain language</li>
+      <li>Example: $14,000 saved in a month from three lines of code</li></ul></div>
+    <div class="stack">
+      <div class="card"><h3>Economics</h3><ul><li>Cuts up to ~30% wasted cloud spend</li><li>Faster, cheaper cost audits</li><li>Clear return on investment</li></ul></div>
+      <div class="card"><h3>Social</h3><ul><li>Frees engineers for real work</li><li>Makes cost control easy for non-experts</li><li>Helps small teams afford the cloud</li></ul></div>
+      <div class="card"><h3>Environmental</h3><ul><li>Fewer idle servers running</li><li>Lower energy use and carbon footprint</li><li>Efficient use of data-centre resources</li></ul></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="membership" style="padding:20px 0 90px"><div class="wrap">
+  <div class="mem">
+    <div><h3>Membership</h3><p>Start free. Move up to a paid plan when your team needs more clouds and approvals.</p></div>
+    <div class="cta"><button class="btn btn-g" id="togPlans" aria-expanded="false">Compare plans</button><button class="btn btn-a" data-open="signup">Sign up</button></div>
+  </div>
+  <div id="plans">
+    <div class="pl"><b>Starter</b><b>$0</b><span>1 cloud account, 5 uploads a month, dry-run scripts</span><button class="btn btn-g" data-plan="Starter">Join</button></div>
+    <div class="pl"><b>Team</b><b>$49/mo</b><span>All three clouds, unlimited uploads, savings tracker, approvals</span><button class="btn btn-g" data-plan="Team">Join</button></div>
+    <div class="pl"><b>Enterprise</b><b>$199/mo</b><span>Workspaces and roles, audit log, savings-share billing option</span><button class="btn btn-g" data-plan="Enterprise">Join</button></div>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap"><span>FinOps Sentinel | Team Code Catalyst | DEX26020</span><span>Sathyabama Institute of Science and Technology, 2026</span></div></footer>
+
+<dialog id="dlg" aria-labelledby="dtitle"><div class="m">
+  <button class="x" id="dclose" aria-label="Close">&times;</button>
+  <div class="tabs" role="tablist"><button class="on" data-tab="signup" role="tab">Sign up</button><button data-tab="login" role="tab">Log in</button></div>
+  <h3 id="dtitle" style="margin-bottom:16px">Create your account</h3>
+  <form id="signupForm" novalidate>
+    <div class="f"><label for="sName">Full name</label><input id="sName" autocomplete="name"></div>
+    <div class="f"><label for="sEmail">Work email</label><input id="sEmail" type="email" autocomplete="email"></div>
+    <div class="f"><label for="sOrg">Organization</label><input id="sOrg" autocomplete="organization"></div>
+    <div class="f"><label for="sPass">Password (8+ characters)</label><input id="sPass" type="password" autocomplete="new-password"></div>
+    <div class="f"><label for="sPlan">Membership</label><select id="sPlan"><option>Starter</option><option>Team</option><option>Enterprise</option></select></div>
+    <div class="msg" id="sMsg" role="alert"></div>
+    <button class="btn btn-a" style="width:100%" type="submit">Create account</button>
+  </form>
+  <form id="loginForm" class="hide" novalidate>
+    <div class="f"><label for="lEmail">Email</label><input id="lEmail" type="email" autocomplete="email"></div>
+    <div class="f"><label for="lPass">Password</label><input id="lPass" type="password" autocomplete="current-password"></div>
+    <div class="msg" id="lMsg" role="alert"></div>
+    <button class="btn btn-a" style="width:100%" type="submit">Log in</button>
+  </form>
+</div></dialog>
+
+<script>
+const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+
+/* ---------- live background ---------- */
+(function(){
+  const c=$('#bg'),x=c.getContext('2d');let W,H,P=[],mx=-999,my=-999;
+  const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function size(){W=c.width=innerWidth;H=c.height=innerHeight;
+    const n=Math.min(110,Math.floor(W*H/15000));P=[];
+    for(let i=0;i<n;i++)P.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.8+.8,h:Math.random()<.25})}
+  addEventListener('resize',size);
+  addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+  function frame(){
+    x.fillStyle='#050505';x.fillRect(0,0,W,H);
+    const g=x.createRadialGradient(W*.8,H*.15,0,W*.8,H*.15,W*.6);
+    g.addColorStop(0,'rgba(255,106,43,.16)');g.addColorStop(1,'rgba(255,106,43,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+    for(const p of P){
+      if(!still){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1}
+      const dx=p.x-mx,dy=p.y-my,d=Math.hypot(dx,dy);
+      if(d<120&&!still){p.x+=dx/d*1.2;p.y+=dy/d*1.2}
+    }
+    for(let i=0;i<P.length;i++){const a=P[i];
+      for(let j=i+1;j<P.length;j++){const b=P[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d<150){x.strokeStyle='rgba(255,176,46,'+(.22*(1-d/150))+')';x.lineWidth=1;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke()}}
+      const dm=Math.hypot(a.x-mx,a.y-my);
+      if(dm<170){x.strokeStyle='rgba(255,106,43,'+(.5*(1-dm/170))+')';x.beginPath();x.moveTo(a.x,a.y);x.lineTo(mx,my);x.stroke()}
+      x.fillStyle=a.h?'#ff6a2b':'#ffb02e';x.globalAlpha=a.h?.95:.65;x.beginPath();x.arc(a.x,a.y,a.r,0,7);x.fill();x.globalAlpha=1;
+    }
+    if(!still)requestAnimationFrame(frame);
+  }
+  size();frame();
+})();
+
+/* ---------- sample data (fictional) ---------- */
+const M=['M1','M2','M3','M4','M5','M6'];
+const CO=[
+ {n:'Kavya Logistics',t:'Freight and delivery, AWS',
+  s:'The agent found 4 unattached volumes and a fleet of build servers running all night. Dry-run scripts were approved on a Friday.',
+  before:[118,121,124,127,131,134],after:[118,119,108,97,92,90],
+  waste:{'Idle VMs':19,'Orphaned volumes':11,'Oversized DBs':9,'Stale snapshots':5},mix:{AWS:100}},
+ {n:'Brightleaf Health',t:'Clinic software, Azure and AWS',
+  s:'Test environments kept running after releases. Sentinel flagged them as idle and proposed schedules to stop them at night.',
+  before:[64,66,69,71,72,75],after:[64,63,58,52,49,48],
+  waste:{'Idle VMs':10,'Orphaned volumes':4,'Oversized DBs':8,'Stale snapshots':5},mix:{Azure:62,AWS:38}},
+ {n:'Orbit Fintech',t:'Payments start-up, GCP and AWS',
+  s:'Two analytics clusters were sized for a launch that never came. The report recommended downsizing with a rollback snapshot.',
+  before:[212,219,226,231,240,247],after:[212,214,198,176,168,161],
+  waste:{'Idle VMs':26,'Orphaned volumes':9,'Oversized DBs':38,'Stale snapshots':13},mix:{GCP:55,AWS:45}},
+ {n:'Lumen Studios',t:'Media rendering, all three clouds',
+  s:'Render nodes were left running between projects. Merging three bills into one view showed the overlap nobody could see before.',
+  before:[88,93,97,101,108,112],after:[88,90,84,73,69,66],
+  waste:{'Idle VMs':24,'Orphaned volumes':6,'Oversized DBs':7,'Stale snapshots':9},mix:{AWS:40,Azure:30,GCP:30}}
+];
+const COL=['#ffb02e','#ff6a2b','#e23d6b','#8b5cf6','#38bdf8'];
+const st={co:0,ds:'spend',ty:'bar'};
+const TYPES={bar:'Bar',line:'Line',area:'Area',donut:'Donut',table:'Table'};
+const DS={spend:'Monthly spend',waste:'Waste found',mix:'Cloud split'};
+
+function dataset(){
+  const c=CO[st.co];
+  if(st.ds==='spend')return{u:'$K',labels:M,series:[{name:'Without Sentinel',values:c.before,color:'#6f6a60'},{name:'With Sentinel',values:c.after,color:'#ffb02e'}]};
+  if(st.ds==='waste')return{u:'$K/mo',labels:Object.keys(c.waste),series:[{name:'Waste found',values:Object.values(c.waste),color:'#ff6a2b'}]};
+  return{u:'%',labels:Object.keys(c.mix),series:[{name:'Share of bill',values:Object.values(c.mix),color:'#ffb02e'}]};
+}
+const nice=m=>{const p=Math.pow(10,Math.floor(Math.log10(m))),f=m/p;return(f<=1?1:f<=2?2:f<=5?5:10)*p};
+const T=(x,y,t,a='middle',s=12,f='#a59f93')=>`<text x="${x}" y="${y}" text-anchor="${a}" font-size="${s}" fill="${f}" font-family="Manrope,Segoe UI,sans-serif">${t}</text>`;
+
+function render(){
+  const d=dataset(),box=$('#chart'),W=720,H=360,m={l:52,r:14,t:16,b:40};
+  let ty=st.ty;
+  $('#legend').innerHTML=(ty==='donut'?d.labels.map((l,i)=>`<span><i style="background:${COL[i%5]}"></i>${l}</span>`):d.series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`)).join('');
+  if(ty==='table'){
+    box.innerHTML='<table class="t"><thead><tr><th></th>'+d.series.map(s=>`<th>${s.name} (${d.u})</th>`).join('')+'</tr></thead><tbody>'+
+      d.labels.map((l,i)=>`<tr><td>${l}</td>`+d.series.map(s=>`<td>${s.values[i]}</td>`).join('')+'</tr>').join('')+
+      '<tr><td><b>Total</b></td>'+d.series.map(s=>`<td><b>${s.values.reduce((a,b)=>a+b,0)}</b></td>`).join('')+'</tr></tbody></table>';
+    $('#legend').innerHTML='';return;
+  }
+  let g='';
+  if(ty==='donut'){
+    const v=d.series[0].values,tot=v.reduce((a,b)=>a+b,0),cx=360,cy=175,R=125,r=78;let a0=-Math.PI/2;
+    v.forEach((n,i)=>{const a1=a0+n/tot*Math.PI*2,lg=a1-a0>Math.PI?1:0,p=(R2,ang)=>[cx+R2*Math.cos(ang),cy+R2*Math.sin(ang)];
+      const[x0,y0]=p(R,a0),[x1,y1]=p(R,a1),[x2,y2]=p(r,a1),[x3,y3]=p(r,a0);
+      g+=`<path d="M${x0} ${y0}A${R} ${R} 0 ${lg} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${lg} 0 ${x3} ${y3}Z" fill="${COL[i%5]}" stroke="#050505" stroke-width="3"><title>${d.labels[i]}: ${n} ${d.u} (${Math.round(n/tot*100)}%)</title></path>`;
+      const mid=(a0+a1)/2,[lx,ly]=p(R+26,mid);g+=T(lx,ly+4,Math.round(n/tot*100)+'%','middle',12,'#f3efe8');a0=a1});
+    g+=T(cx,cy-2,st.ds==='mix'?'100%':tot,'middle',30,'#f3efe8')+T(cx,cy+20,d.u+(st.ds==='spend'?' (without)':''),'middle',12);
+    box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Donut chart">${g}</svg>`;return;
+  }
+  const all=d.series.flatMap(s=>s.values),mx=nice(Math.max(...all)*1.05),iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const Y=v=>m.t+ih-v/mx*ih,n=d.labels.length;
+  for(let i=0;i<=5;i++){const v=mx/5*i,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.08)"/>`+T(m.l-8,y+4,Math.round(v),'end',11)}
+  const gw=iw/n;
+  d.labels.forEach((l,i)=>g+=T(m.l+gw*i+gw/2,H-14,l,'middle',12));
+  if(ty==='bar'){
+    const k=d.series.length,bw=Math.min(46,gw*.7/k);
+    d.series.forEach((s,si)=>s.values.forEach((v,i)=>{
+      const x=m.l+gw*i+gw/2-(k*bw)/2+si*bw,y=Y(v);
+      g+=`<rect class="bar" x="${x+2}" y="${y}" width="${bw-4}" height="${m.t+ih-y}" rx="4" fill="${s.color}"><title>${d.labels[i]} | ${s.name}: ${v} ${d.u}</title></rect>`;
+      if(k===1)g+=T(x+bw/2,y-7,v,'middle',12,'#f3efe8');
+    }));
+  }else{
+    d.series.forEach((s,si)=>{
+      const pts=s.values.map((v,i)=>[m.l+gw*i+gw/2,Y(v)]),line=pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join('');
+      if(ty==='area')g+=`<path d="${line}L${pts[n-1][0]} ${m.t+ih}L${pts[0][0]} ${m.t+ih}Z" fill="${s.color}" opacity=".22"/>`;
+      g+=`<path class="draw" d="${line}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linejoin="round"/>`;
+      pts.forEach((p,i)=>g+=`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${s.color}" stroke="#050505" stroke-width="2"><title>${d.labels[i]} | ${s.name}: ${s.values[i]} ${d.u}</title></circle>`);
+    });
+  }
+  g+=T(m.l,10,d.u,'start',11);
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${TYPES[ty]} chart">${g}</svg>`;
+}
+function controls(){
+  $('#cos').innerHTML=CO.map((c,i)=>`<button class="co ${i===st.co?'on':''}" data-i="${i}"><b>${c.n}</b><span>${c.t}</span></button>`).join('');
+  $('#dsSeg').innerHTML=Object.entries(DS).map(([k,v])=>`<button class="${k===st.ds?'on':''}" data-ds="${k}">${v}</button>`).join('');
+  $('#tySeg').innerHTML=Object.entries(TYPES).map(([k,v])=>`<button class="${k===st.ty?'on':''}" data-ty="${k}">${v}</button>`).join('');
+  const c=CO[st.co],sv=c.before[5]-c.after[5],tot=c.before.reduce((a,b)=>a+b,0)-c.after.reduce((a,b)=>a+b,0);
+  $('#coName').textContent=c.n;$('#story').textContent=c.s;
+  $('#k1').textContent='+sv+'K';$('#k2').textContent=Math.round(sv/c.before[5]*100)+'%';$('#k3').textContent='+tot+'K';
+}
+function refresh(){controls();render()}
+$('#cos').onclick=e=>{const b=e.target.closest('.co');if(b){st.co=+b.dataset.i;refresh()}};
+$('#dsSeg').onclick=e=>{const b=e.target.closest('button');if(b){st.ds=b.dataset.ds;refresh()}};
+$('#tySeg').onclick=e=>{const b=e.target.closest('button');if(b){st.ty=b.dataset.ty;refresh()}};
+function save(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$('#dCsv').onclick=()=>{const d=dataset();let t=['Label'].concat(d.series.map(s=>s.name+' ('+d.u+')')).join(',')+'\n';
+  d.labels.forEach((l,i)=>t+=[l].concat(d.series.map(s=>s.values[i])).join(',')+'\n');
+  save(new Blob([t],{type:'text/csv'}),CO[st.co].n.replace(/\s/g,'_')+'_'+st.ds+'.csv')};
+$('#dPng').onclick=()=>{
+  if(st.ty==='table'){toast('Pick a chart format to download an image.');return}
+  const svg=$('#chart svg'),s=new XMLSerializer().serializeToString(svg),img=new Image();
+  img.onload=()=>{const c=document.createElement('canvas');c.width=1440;c.height=720;const x=c.getContext('2d');
+    x.fillStyle='#050505';x.fillRect(0,0,1440,720);x.drawImage(img,0,0,1440,720);
+    c.toBlob(b=>save(b,CO[st.co].n.replace(/\s/g,'_')+'_'+st.ds+'_'+st.ty+'.png'))};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" '));
+};
+
+/* ---------- estimator ---------- */
+const money=n=>'+Math.round(n).toLocaleString('en-US');
+function calc(){const v=+$('#spend').value;$('#spendVal').textContent=money(v);$('#save').textContent=money(v*.3);$('#saveYear').textContent=money(v*.3*12)+' a year'}
+$('#spend').addEventListener('input',calc);
+
+/* ---------- accounts (browser only) ---------- */
+const dlg=$('#dlg');
+const store={
+  get users(){try{return JSON.parse(localStorage.getItem('fs_users')||'[]')}catch(e){return[]}},
+  set users(v){try{localStorage.setItem('fs_users',JSON.stringify(v))}catch(e){}},
+  get session(){try{return localStorage.getItem('fs_session')}catch(e){return null}},
+  set session(v){try{v?localStorage.setItem('fs_session',v):localStorage.removeItem('fs_session')}catch(e){}}
+};
+async function hash(t){
+  if(!(window.crypto&&crypto.subtle))return btoa(unescape(encodeURIComponent(t)));
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+  return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),3200)}
+function renderAuth(){
+  const s=$('#authSlot'),u=store.users.find(x=>x.email===store.session);
+  if(u){s.innerHTML='<span class="chip"></span><button class="btn btn-g" id="out">Log out</button>';
+    s.firstElementChild.textContent=u.name.split(' ')[0]+' | '+u.plan;
+    $('#out').onclick=()=>{store.session=null;renderAuth();toast('You are logged out.')}}
+  else s.innerHTML='<button class="btn btn-g" data-open="login">Log in</button><button class="btn btn-a" data-open="signup">Sign up</button>';
+}
+function setTab(t){
+  $('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  $('#signupForm').classList.toggle('hide',t!=='signup');$('#loginForm').classList.toggle('hide',t!=='login');
+  $('#dtitle').textContent=t==='signup'?'Create your account':'Welcome back';
+}
+function openDlg(tab,plan){setTab(tab);if(plan)$('#sPlan').value=plan;$('#sMsg').textContent=$('#lMsg').textContent='';if(!dlg.open)dlg.showModal()}
+document.addEventListener('click',e=>{
+  const o=e.target.closest('[data-open]');if(o){e.preventDefault();openDlg(o.dataset.open)}
+  const p=e.target.closest('[data-plan]');if(p)openDlg('signup',p.dataset.plan);
+});
+$('.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+$('#dclose').onclick=()=>dlg.close();
+dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+$('#togPlans').onclick=e=>{const o=$('#plans').classList.toggle('open');e.target.setAttribute('aria-expanded',o);e.target.textContent=o?'Hide plans':'Compare plans'};
+$('#signupForm').addEventListener('submit',async e=>{
+  e.preventDefault();const m=$('#sMsg');
+  const name=$('#sName').value.trim(),email=$('#sEmail').value.trim().toLowerCase(),pass=$('#sPass').value;
+  if(!name)return m.textContent='Enter your full name.';
+  if(!/^\S+@\S+\.\S+$/.test(email))return m.textContent='Enter a valid email address.';
+  if(pass.length<8)return m.textContent='Use a password with at least 8 characters.';
+  if(store.users.some(u=>u.email===email))return m.textContent='That email is already registered. Log in instead.';
+  const users=store.users,plan=$('#sPlan').value;
+  users.push({name,email,org:$('#sOrg').value.trim(),plan,pass:await hash(pass),joined:new Date().toISOString()});
+  store.users=users;store.session=email;e.target.reset();dlg.close();renderAuth();
+  toast('Welcome, '+name.split(' ')[0]+'. Your '+plan+' membership is active.');
+});
+$('#loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();const m=$('#lMsg');
+  const email=$('#lEmail').value.trim().toLowerCase(),h=await hash($('#lPass').value),u=store.users.find(x=>x.email===email&&x.pass===h);
+  if(!u)return m.textContent='Email or password is incorrect.';
+  store.session=email;e.target.reset();dlg.close();renderAuth();toast('Logged in as '+u.name+'.');
+});
+
+renderAuth();calc();refresh();
+</script>
+</body>
+</html>
